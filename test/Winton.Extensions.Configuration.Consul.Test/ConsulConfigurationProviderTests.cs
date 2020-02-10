@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Consul;
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using Winton.Extensions.Configuration.Consul.Parsers;
 using Xunit;
@@ -456,10 +457,171 @@ namespace Winton.Extensions.Configuration.Consul
 
                 _provider.Load();
 
+                _provider.TryGet("Key", out var value);
+                value.Should().Be("Test");
+
                 await reload.Task;
 
-                _provider.TryGet("Key", out var value);
+                _provider.TryGet("Key", out value);
                 value.Should().Be("Test2");
+            }
+
+            [Fact]
+            private async Task ShouldReloadConfigWhenDataInConsulHasChangedWithNoOtherConfigurationProvidersPresent()
+            {
+                var reload = new TaskCompletionSource<bool>();
+                _provider
+                    .GetReloadToken()
+                    .RegisterChangeCallback(_ => reload.TrySetResult(true), new object());
+                _kvEndpoint
+                    .SetupSequence(kv => kv.List("Test", It.IsAny<QueryOptions>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(
+                        new QueryResult<KVPair[]>
+                        {
+                            LastIndex = 12,
+                            Response = new[]
+                            {
+                                new KVPair("Test") { Value = new List<byte> { 1 }.ToArray() }
+                            },
+                            StatusCode = HttpStatusCode.OK
+                        })
+                    .ReturnsAsync(
+                        new QueryResult<KVPair[]>
+                        {
+                            LastIndex = 12,
+                            Response = new[]
+                            {
+                                new KVPair("Test") { Value = new List<byte> { 1 }.ToArray() }
+                            },
+                            StatusCode = HttpStatusCode.OK
+                        })
+                    .ReturnsAsync(
+                        new QueryResult<KVPair[]>
+                        {
+                            LastIndex = 13,
+                            Response = new[]
+                            {
+                                new KVPair("Test") { Value = new List<byte> { 1 }.ToArray() }
+                            },
+                            StatusCode = HttpStatusCode.OK
+                        })
+                    .Returns(new TaskCompletionSource<QueryResult<KVPair[]>>().Task);
+                _parser
+                    .SetupSequence(p => p.Parse(It.IsAny<Stream>()))
+                    .Returns(new Dictionary<string, string> { { "Key", "Test" } })
+                    .Returns(new Dictionary<string, string> { { "Key", "Test2" } });
+
+                _provider.Load();
+
+                var config = new ConfigurationBuilder()
+                    .Add(_source)
+                    .Build();
+
+                config["Key"].Should().Be("Test");
+
+                await reload.Task;
+
+                config["Key"].Should().Be("Test2");
+            }
+
+            [Fact]
+            private async Task ShouldReloadConfigWhenDataInConsulHasChangedWithOtherConfigurationProvidersPresentAfter()
+            {
+                var reload = new TaskCompletionSource<bool>();
+                _provider
+                    .GetReloadToken()
+                    .RegisterChangeCallback(_ => reload.TrySetResult(true), new object());
+                _kvEndpoint
+                    .SetupSequence(kv => kv.List("Test", It.IsAny<QueryOptions>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(
+                        new QueryResult<KVPair[]>
+                        {
+                            LastIndex = 12,
+                            Response = new[]
+                            {
+                                new KVPair("Test") { Value = new List<byte> { 1 }.ToArray() }
+                            },
+                            StatusCode = HttpStatusCode.OK
+                        })
+                    .ReturnsAsync(
+                        new QueryResult<KVPair[]>
+                        {
+                            LastIndex = 13,
+                            Response = new[]
+                            {
+                                new KVPair("Test") { Value = new List<byte> { 1 }.ToArray() }
+                            },
+                            StatusCode = HttpStatusCode.OK
+                        })
+                    .Returns(new TaskCompletionSource<QueryResult<KVPair[]>>().Task);
+                _parser
+                    .SetupSequence(p => p.Parse(It.IsAny<Stream>()))
+                    .Returns(new Dictionary<string, string> { { "Key", "Test" } })
+                    .Returns(new Dictionary<string, string> { { "Key", "Test2" } });
+
+                _provider.Load();
+
+                var config = new ConfigurationBuilder()
+                    .Add(_source)
+                    .AddEnvironmentVariables()
+                    .AddCommandLine(new string[] { })
+                    .Build();
+
+                config["Key"].Should().Be("Test");
+
+                await reload.Task;
+
+                config["Key"].Should().Be("Test2");
+            }
+
+            [Fact]
+            private async Task ShouldReloadConfigWhenDataInConsulHasChangedWithOtherConfigurationProvidersPresentBefore()
+            {
+                var reload = new TaskCompletionSource<bool>();
+                _provider
+                    .GetReloadToken()
+                    .RegisterChangeCallback(_ => reload.TrySetResult(true), new object());
+                _kvEndpoint
+                    .SetupSequence(kv => kv.List("Test", It.IsAny<QueryOptions>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(
+                        new QueryResult<KVPair[]>
+                        {
+                            LastIndex = 12,
+                            Response = new[]
+                            {
+                                new KVPair("Test") { Value = new List<byte> { 1 }.ToArray() }
+                            },
+                            StatusCode = HttpStatusCode.OK
+                        })
+                    .ReturnsAsync(
+                        new QueryResult<KVPair[]>
+                        {
+                            LastIndex = 13,
+                            Response = new[]
+                            {
+                                new KVPair("Test") { Value = new List<byte> { 1 }.ToArray() }
+                            },
+                            StatusCode = HttpStatusCode.OK
+                        })
+                    .Returns(new TaskCompletionSource<QueryResult<KVPair[]>>().Task);
+                _parser
+                    .SetupSequence(p => p.Parse(It.IsAny<Stream>()))
+                    .Returns(new Dictionary<string, string> { { "Key", "Test" } })
+                    .Returns(new Dictionary<string, string> { { "Key", "Test2" } });
+
+                _provider.Load();
+
+                var config = new ConfigurationBuilder()
+                    .AddEnvironmentVariables()
+                    .AddCommandLine(new string[] { })
+                    .Add(_source)
+                    .Build();
+
+                config["Key"].Should().Be("Test");
+
+                await reload.Task;
+
+                config["Key"].Should().Be("Test2");
             }
 
             [Fact]
