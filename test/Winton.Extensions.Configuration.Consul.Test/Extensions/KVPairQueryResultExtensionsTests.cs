@@ -179,7 +179,7 @@ namespace Winton.Extensions.Configuration.Consul.Extensions
                     StatusCode = HttpStatusCode.OK
                 };
                 _parser
-                    .Setup(p => p.Parse(It.IsAny<Stream>()))
+                    .Setup(p => p.Parse(It.IsAny<string>(), It.IsAny<Stream>()))
                     .Returns(new Dictionary<string, string> { { "key", "value" } });
 
                 var config = result.ToConfigDictionary("test/path", _parser.Object);
@@ -199,12 +199,12 @@ namespace Winton.Extensions.Configuration.Consul.Extensions
                     StatusCode = HttpStatusCode.OK
                 };
                 _parser
-                    .Setup(p => p.Parse(It.IsAny<Stream>()))
+                    .Setup(p => p.Parse(It.IsAny<string>(), It.IsAny<Stream>()))
                     .Returns(new Dictionary<string, string>());
 
                 result.ToConfigDictionary("path/test", _parser.Object);
 
-                _parser.Verify(cp => cp.Parse(It.IsAny<MemoryStream>()), Times.Never);
+                _parser.Verify(cp => cp.Parse(It.IsAny<string>(), It.IsAny<MemoryStream>()), Times.Never);
             }
 
             [Theory]
@@ -223,7 +223,7 @@ namespace Winton.Extensions.Configuration.Consul.Extensions
                     StatusCode = HttpStatusCode.OK
                 };
                 _parser
-                    .Setup(p => p.Parse(It.IsAny<Stream>()))
+                    .Setup(p => p.Parse(It.IsAny<string>(), It.IsAny<Stream>()))
                     .Returns(new Dictionary<string, string> { { "kEy", "value" } });
 
                 var config = result.ToConfigDictionary(
@@ -245,8 +245,8 @@ namespace Winton.Extensions.Configuration.Consul.Extensions
                     StatusCode = HttpStatusCode.OK
                 };
                 _parser
-                    .Setup(p => p.Parse(It.IsAny<Stream>()))
-                    .Returns(new Dictionary<string, string> { { "Key", "Value" } });
+                    .Setup(p => p.Parse("path/test", It.IsAny<Stream>()))
+                    .Returns(new Dictionary<string, string> { { "path/test/Key", "Value" } });
 
                 var config = result.ToConfigDictionary("path", _parser.Object);
 

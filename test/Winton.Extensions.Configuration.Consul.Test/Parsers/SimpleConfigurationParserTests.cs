@@ -21,7 +21,7 @@ namespace Winton.Extensions.Configuration.Consul.Parsers
             private void ShouldParseSimpleValueFromStream()
             {
                 using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes("value"));
-                var result = _parser.Parse(stream);
+                var result = _parser.Parse(string.Empty, stream);
 
                 result.Should().BeEquivalentTo(new Dictionary<string, string> { { string.Empty, "value" } });
             }

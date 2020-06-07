@@ -197,7 +197,7 @@ namespace Winton.Extensions.Configuration.Consul
             {
                 var allQueryOptions = new List<QueryOptions>();
                 _parser
-                    .Setup(cp => cp.Parse(It.IsAny<MemoryStream>()))
+                    .Setup(cp => cp.Parse(It.IsAny<string>(), It.IsAny<MemoryStream>()))
                     .Returns(new Dictionary<string, string> { { "Key", "Value" } });
                 _kvEndpoint
                     .Setup(
@@ -262,7 +262,7 @@ namespace Winton.Extensions.Configuration.Consul
             private void ShouldSetData()
             {
                 _parser
-                    .Setup(cp => cp.Parse(It.IsAny<MemoryStream>()))
+                    .Setup(cp => cp.Parse(It.IsAny<string>(), It.IsAny<MemoryStream>()))
                     .Returns(new Dictionary<string, string> { { "Key", "Value" } });
                 _kvEndpoint
                     .Setup(kv => kv.List("Test", It.IsAny<QueryOptions>(), It.IsAny<CancellationToken>()))
@@ -406,7 +406,7 @@ namespace Winton.Extensions.Configuration.Consul
                             return new TaskCompletionSource<QueryResult<KVPair[]>>().Task;
                         });
                 _parser
-                    .Setup(cp => cp.Parse(It.IsAny<MemoryStream>()))
+                    .Setup(cp => cp.Parse(It.IsAny<string>(), It.IsAny<MemoryStream>()))
                     .Returns(new Dictionary<string, string> { { "Key", "Test" } });
 
                 _provider.Load();
@@ -467,7 +467,7 @@ namespace Winton.Extensions.Configuration.Consul
                         })
                     .Returns(new TaskCompletionSource<QueryResult<KVPair[]>>().Task);
                 _parser
-                    .SetupSequence(p => p.Parse(It.IsAny<Stream>()))
+                    .SetupSequence(p => p.Parse(It.IsAny<string>(), It.IsAny<Stream>()))
                     .Returns(new Dictionary<string, string> { { "Key", "Test" } })
                     .Returns(new Dictionary<string, string> { { "Key", "Test2" } });
 

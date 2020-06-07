@@ -15,13 +15,13 @@ namespace Winton.Extensions.Configuration.Consul.Parsers
     public sealed class JsonConfigurationParser : IConfigurationParser
     {
         /// <inheritdoc />
-        public IDictionary<string, string> Parse(Stream stream)
+        public IDictionary<string, string> Parse(string baseKey, Stream valueStream)
         {
             return new ConfigurationBuilder()
-                .AddJsonStream(stream)
+                .AddJsonStream(valueStream)
                 .Build()
                 .AsEnumerable()
-                .ToDictionary(pair => pair.Key, pair => pair.Value);
+                .ToDictionary(pair => $"{baseKey}/{pair.Key}", pair => pair.Value);
         }
     }
 }

@@ -17,12 +17,12 @@ namespace Winton.Extensions.Configuration.Consul.Parsers
         public sealed class Parse : JsonConfigurationParserTests
         {
             [Theory]
-            [InlineData("{\"Key\": \"Value\"}", "Key", "Value")]
-            [InlineData("{\"parent\": {\"child\": \"Value\"} }", "parent:child", "Value")]
+            [InlineData("{\"Key\": \"Value\"}", "base/Key", "Value")]
+            [InlineData("{\"parent\": {\"child\": \"Value\"} }", "base/parent:child", "Value")]
             private void ShouldParseSimpleJsonFromStream(string json, string key, string expectedValue)
             {
                 using Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
-                var result = _parser.Parse(stream);
+                var result = _parser.Parse("base", stream);
                 result[key].Should().Be(expectedValue);
             }
         }

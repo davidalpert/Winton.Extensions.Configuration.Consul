@@ -14,8 +14,9 @@ namespace Winton.Extensions.Configuration.Consul.Parsers
         /// <summary>
         ///     Parse the <see cref="Stream" /> into a dictionary.
         /// </summary>
-        /// <param name="stream">The stream to parse.</param>
+        /// <param name="baseKey">The base configuration key at which this <paramref name="valueStream"/> was read.</param>
+        /// <param name="valueStream">A stream representing the value to parse.</param>
         /// <returns>A dictionary representing the configuration in a flattened form.</returns>
-        IDictionary<string, string> Parse(Stream stream);
+        IDictionary<string, string> Parse(string baseKey, Stream valueStream);
     }
 }

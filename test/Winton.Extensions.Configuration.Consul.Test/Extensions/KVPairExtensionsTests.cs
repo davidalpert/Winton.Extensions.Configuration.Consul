@@ -144,7 +144,7 @@ namespace Winton.Extensions.Configuration.Consul.Extensions
                 IEnumerable<KeyValuePair<string, string>> expected)
             {
                 _parserMock
-                    .Setup(p => p.Parse(It.IsAny<Stream>()))
+                    .Setup(p => p.Parse(It.IsAny<string>(), It.IsAny<Stream>()))
                     .Returns(parsedConfig);
                 var kvPair = new KVPair(kvPairKey)
                 {
@@ -163,7 +163,7 @@ namespace Winton.Extensions.Configuration.Consul.Extensions
             private void ShouldThrowIfTheRootKeyPointsToASingleValue()
             {
                 _parserMock
-                    .Setup(p => p.Parse(It.IsAny<Stream>()))
+                    .Setup(p => p.Parse(It.IsAny<string>(), It.IsAny<Stream>()))
                     .Returns(new Dictionary<string, string> { { string.Empty, "value" } });
                 var kvPair = new KVPair("rootKey")
                 {

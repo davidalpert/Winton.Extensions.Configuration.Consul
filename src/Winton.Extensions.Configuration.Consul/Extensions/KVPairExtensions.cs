@@ -17,12 +17,13 @@ namespace Winton.Extensions.Configuration.Consul.Extensions
             IConfigurationParser parser)
         {
             using Stream stream = new MemoryStream(kvPair.Value);
+            var baseKey = kvPair.Key.TrimEnd('/'); // parser gets consul key
             return parser
-                .Parse(stream)
+                .Parse(baseKey, stream)
                 .Select(
                     pair =>
                     {
-                        var key = $"{kvPair.Key.RemoveStart(keyToRemove).TrimEnd('/')}:{pair.Key}"
+                        var key = pair.Key.RemoveStart(keyToRemove)
                             .Replace('/', ':')
                             .Trim(':');
                         if (string.IsNullOrEmpty(key))
